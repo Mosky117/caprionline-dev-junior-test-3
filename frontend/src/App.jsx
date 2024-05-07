@@ -4,6 +4,8 @@ import { Button, Rating, Spinner } from 'flowbite-react';
 const App = props => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [sortByRating, setSortByRating] = useState(false);
+  const [sortByTime, setSortByTime]=useState(false);
 
   const fetchMovies = () => {
     setLoading(true);
@@ -16,6 +18,18 @@ const App = props => {
       });
   }
 
+  const sortRatedMovies= () => {
+    const sorted= [...movies].sort((a, b)=> b.rating-a.rating);
+    setMovies(sorted);
+    setSortByRating(true);
+  }
+
+  const sortReleasedMovies= () => {
+    const sorted = [...movies].sort((a, b)=> b.year-a.year);
+    setMovies(sorted);
+    setSortByTime(true);
+  }
+
   useEffect(() => {
     fetchMovies();
   }, []);
@@ -24,11 +38,20 @@ const App = props => {
     <Layout>
       <Heading />
 
-      <MovieList loading={loading}>
+      <div className='flex justify-center mb-4'>
+        <Button color="light" onClick={sortRatedMovies}>
+          Sort by Rating
+        </Button>
+        <Button className='ml-4' color="light" onClick={sortReleasedMovies}>
+          Sort by Release
+        </Button>
+      </div>
+      <MovieList loading={loading} >
         {movies.map((item, key) => (
           <MovieItem key={key} {...item} />
         ))}
       </MovieList>
+
     </Layout>
   );
 };
@@ -131,3 +154,10 @@ const MovieItem = props => {
 };
 
 export default App;
+
+
+
+
+
+
+
