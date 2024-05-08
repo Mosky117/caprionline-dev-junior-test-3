@@ -3,9 +3,11 @@ import { Button, Rating, Spinner } from 'flowbite-react';
 
 const App = props => {
   const [movies, setMovies] = useState([]);
+  const [genres, setGenres]= useState([]);
+  const [movieGenres, setMovieGenres] = useState([]);
+
   const [loading, setLoading] = useState(true);
-  const [sortByRating, setSortByRating] = useState(false);
-  const [sortByTime, setSortByTime]=useState(false);
+  const [showGenreList, setShowGenreList] = useState(false);
 
   const fetchMovies = () => {
     setLoading(true);
@@ -21,31 +23,51 @@ const App = props => {
   const sortRatedMovies= () => {
     const sorted= [...movies].sort((a, b)=> b.rating-a.rating);
     setMovies(sorted);
-    setSortByRating(true);
   }
 
   const sortReleasedMovies= () => {
     const sorted = [...movies].sort((a, b)=> b.year-a.year);
     setMovies(sorted);
-    setSortByTime(true);
+  }
+
+  const fetchGenres = () => {
+    return fetch('http://localhost:8000/genres')
+      .then(response => response.json())
+      .then(data => {
+        setGenres(data);
+      });
+  }
+
+  const toggleGenreList = () => {
+    setShowGenreList(!showGenreList);
+  };
+
+  const fetchMovieGenres = () => {
+    return fetch('http://localhost:8000/movieGenres')
+      .then(response => response.json())
+      .then(data => {
+        setMovieGenres(data);
+      });
+  }
+
+  const selectedGenre = (genreId) => {
+    const filteredMovies = movieGenres
+      .filter((movieGenre) => movieGenre.genre.id == genreId)
+      .map((movieGenre) => movieGenre.movie);
+  
+    setMovies(filteredMovies);
   }
 
   useEffect(() => {
     fetchMovies();
+    fetchGenres();
+    fetchMovieGenres();
   }, []);
 
   return (
     <Layout>
       <Heading />
-
-      <div className='flex justify-center mb-4'>
-        <Button color="light" onClick={sortRatedMovies}>
-          Sort by Rating
-        </Button>
-        <Button className='ml-4' color="light" onClick={sortReleasedMovies}>
-          Sort by Release
-        </Button>
-      </div>
+      <Filter genres={genres} selectedGenre={selectedGenre} sortRatedMovies={sortRatedMovies} sortReleasedMovies={sortReleasedMovies} toggleGenreList={toggleGenreList} showGenreList={showGenreList}/>      
       <MovieList loading={loading} >
         {movies.map((item, key) => (
           <MovieItem key={key} {...item} />
@@ -53,6 +75,32 @@ const App = props => {
       </MovieList>
 
     </Layout>
+  );
+};
+
+const Filter= props => {
+  const { selectedGenre, sortRatedMovies, sortReleasedMovies, toggleGenreList, showGenreList, genres } = props;
+  return (
+    <div className='flex justify-center mb-4'>
+        <Button color="light" onClick={sortRatedMovies}>
+          Sort by Rating
+        </Button>
+        <Button className='ml-4' color="light" onClick={sortReleasedMovies}>
+          Sort by Release
+        </Button>
+        <Button className='ml-4' color="light" onClick={toggleGenreList}>
+          Sort by Genre
+        </Button >
+        {showGenreList &&(
+          <select className='ml-4 rounded' onChange={(e)=> selectedGenre(e.target.value)}>
+            {genres.map((item, key) => (
+              <option key={key} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
   );
 };
 
